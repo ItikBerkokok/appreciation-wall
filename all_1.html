@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Appreciation Wall</title>
+  <style>
+    body, html {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #ffb6c1, #d3d3d3, #00b1a9);
+      background-size: 400% 400%;
+      animation: gradientAnimation 15s ease infinite;
+    }
+
+    @keyframes gradientAnimation {
+      0% {background-position: 0% 50%;}
+      50% {background-position: 100% 50%;}
+      100% {background-position: 0% 50%;}
+    }
+
+    #committee {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: url('committee-photo.jpg') no-repeat center center;
+      background-size: cover;
+      z-index: 10;
+      cursor: pointer;
+      transition: opacity 1s ease-in-out;
+    }
+
+    #messages-container {
+      display: none;
+      position: absolute;
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    .message, .icon {
+      position: absolute;
+      padding: 12px 18px;
+      white-space: nowrap;
+      transition: transform 0.3s ease, opacity 0.3s ease;
+    }
+
+    .message {
+      background-color: #ffb6c1;
+      border-radius: 20px;
+      color: #333;
+      box-shadow: 2px 4px 8px rgba(0,0,0,0.1);
+      border: 2px solid #ff69b4;
+      cursor: pointer;
+    }
+
+    .message.focused {
+      transform: scale(1.8);
+      z-index: 5;
+    }
+
+    .message.dimmed {
+      opacity: 0.3;
+    }
+
+    .icon {
+      font-size: 28px;
+      color: #00b1a9;
+      pointer-events: none;
+      opacity: 0.7;
+    }
+
+    #scrollBtn, #backBtn {
+      position: fixed;
+      padding: 10px 20px;
+      background-color: #00b1a9;
+      color: white;
+      border: none;
+      border-radius: 20px;
+      font-size: 16px;
+      cursor: pointer;
+      z-index: 15;
+      font-weight: bold;
+    }
+
+    #scrollBtn {
+      bottom: 20px;
+      right: 20px;
+    }
+
+    #backBtn {
+      bottom: 20px;
+      left: 20px;
+      display: none;
+    }
+
+    #list-view {
+      display: none;
+      padding: 30px;
+      background-color: #ffffff;
+      color: #333;
+      font-size: 18px;
+      line-height: 1.6;
+      overflow-y: scroll;
+      height: 100vh;
+    }
+
+    #list-view ul {
+      list-style-type: none;
+      padding: 0;
+    }
+
+    #list-view li {
+      margin-bottom: 15px;
+      background-color: #d3d3d3;
+      padding: 15px;
+      border-radius: 20px;
+      border-left: 6px solid #00b1a9;
+    }
+  </style>
+</head>
+<body>
+  <div id="committee" onclick="fadeOutPhoto()"></div>
+  <div id="messages-container"></div>
+  <div id="list-view">
+    <ul id="messageList"></ul>
+  </div>
+  <button id="scrollBtn" onclick="showList()">Scroll all messages</button>
+  <button id="backBtn" onclick="showFloating()">&lt;&lt;</button>
+
+  <script>
+    const messages = [
+      "Thank you for making this place brighter!",
+      "Your smile is contagious and uplifting!",
+      "Your dedication means the world!",
+      ...Array(90).fill('').map((_, i) => `Appreciation message #${i + 4}`)
+    ];
+
+    const icons = ['🧸', '🍼', '🩺', '👶', '❤️', '👩\u200d⚕️', '👨\u200d⚕️'];
+
+    const container = document.getElementById('messages-container');
+    const list = document.getElementById('messageList');
+
+    messages.forEach((msg, index) => {
+      const bubble = document.createElement('div');
+      bubble.className = 'message';
+      bubble.innerText = msg;
+      container.appendChild(bubble);
+
+      // Position elements in center with small random offset to spread out
+      let centerX = window.innerWidth / 2;
+      let centerY = window.innerHeight / 2;
+      
+      // Add small random initial offset from center
+      let initialOffsetX = (Math.random() - 0.5) * 100;
+      let initialOffsetY = (Math.random() - 0.5) * 100;
+      
+      let x = centerX + initialOffsetX;
+      let y = centerY + initialOffsetY;
+      
+      bubble.style.left = x + 'px';
+      bubble.style.top = y + 'px';
+
+      let dx = (Math.random() - 0.5) * 0.8;
+      let dy = (Math.random() - 0.5) * 0.8;
+
+      function move() {
+        x += dx;
+        y += dy;
+        
+        // Bounce off walls
+        if (x < 0 || x > window.innerWidth - bubble.offsetWidth) {
+          dx *= -1;
+          x = Math.max(0, Math.min(x, window.innerWidth - bubble.offsetWidth));
+        }
+        if (y < 0 || y > window.innerHeight - bubble.offsetHeight) {
+          dy *= -1;
+          y = Math.max(0, Math.min(y, window.innerHeight - bubble.offsetHeight));
+        }
+        
+        bubble.style.left = x + 'px';
+        bubble.style.top = y + 'px';
+        requestAnimationFrame(move);
+      }
+      
+      // Start animation after a small delay to spread them out
+      setTimeout(() => move(), index * 50);
+      
+
+      bubble.addEventListener('click', () => {
+        const isFocused = bubble.classList.contains('focused');
+        document.querySelectorAll('.message').forEach(el => {
+          el.classList.remove('focused');
+          el.classList.remove('dimmed');
+        });
+        if (!isFocused) {
+          bubble.classList.add('focused');
+          document.querySelectorAll('.message:not(.focused)').forEach(el => el.classList.add('dimmed'));
+        }
+      });
+    });
+
+    icons.forEach((iconChar, index) => {
+      const icon = document.createElement('div');
+      icon.className = 'icon';
+      icon.innerText = iconChar;
+      container.appendChild(icon);
+
+      // Position icons in center with small random offset
+      let centerX = window.innerWidth / 2;
+      let centerY = window.innerHeight / 2;
+      
+      let initialOffsetX = (Math.random() - 0.5) * 80;
+      let initialOffsetY = (Math.random() - 0.5) * 80;
+      
+      let x = centerX + initialOffsetX;
+      let y = centerY + initialOffsetY;
+      
+      icon.style.left = x + 'px';
+      icon.style.top = y + 'px';
+
+      let dx = (Math.random() - 0.5) * 0.5;
+      let dy = (Math.random() - 0.5) * 0.5;
+
+      function moveIcon() {
+        x += dx;
+        y += dy;
+        
+        // Bounce off walls
+        if (x < 0 || x > window.innerWidth - icon.offsetWidth) {
+          dx *= -1;
+          x = Math.max(0, Math.min(x, window.innerWidth - icon.offsetWidth));
+        }
+        if (y < 0 || y > window.innerHeight - icon.offsetHeight) {
+          dy *= -1;
+          y = Math.max(0, Math.min(y, window.innerHeight - icon.offsetHeight));
+        }
+        
+        icon.style.left = x + 'px';
+        icon.style.top = y + 'px';
+        requestAnimationFrame(moveIcon);
+      }
+      
+      // Start icon animation with delay
+      setTimeout(() => moveIcon(), index * 100);
+    });
+
+    messages.forEach(msg => {
+      const li = document.createElement('li');
+      li.innerText = msg;
+      list.appendChild(li);
+    });
+
+    function showList() {
+      container.style.display = 'none';
+      document.getElementById('list-view').style.display = 'block';
+      document.getElementById('backBtn').style.display = 'block';
+    }
+
+    function showFloating() {
+      container.style.display = 'block';
+      document.getElementById('list-view').style.display = 'none';
+      document.getElementById('backBtn').style.display = 'none';
+    }
+
+    function fadeOutPhoto() {
+      document.getElementById('committee').style.opacity = '0';
+      setTimeout(() => {
+        document.getElementById('committee').style.display = 'none';
+        container.style.display = 'block';
+        const audio = document.getElementById('bgm');
+        audio.volume = 1.0;
+        audio.muted = false;
+        audio.play().catch(err => console.log('Audio blocked:', err));
+      }, 1000);
+    }
+  </script>
+  <audio id="bgm" loop>
+    <source src="ed sheeran photograph.mp3" type="audio/mpeg">
+  </audio>
+</body>
+</html>
