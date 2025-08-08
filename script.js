@@ -219,6 +219,10 @@ function fadeOutPhoto() {
     document.getElementById('committee').style.display = 'none';
     container.style.display = 'block';
     createFloatingElements();
+    const audio = document.getElementById('bgm');
+    audio.volume = 1.0;
+    audio.muted = false;
+    audio.play().catch(err => console.log('Audio blocked:', err));
   }, 1000);
 }
 
